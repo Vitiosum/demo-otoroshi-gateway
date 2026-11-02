@@ -1,0 +1,17 @@
+# dependencies and build outputs
+node_modules
+dist
+build
+coverage
+
+# environment and local Clever link
+.env*
+!.env.example
+.clever.json
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+*.log
