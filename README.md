@@ -8,7 +8,7 @@
 
 <img src="docs/screenshot-mobile.png" alt="The Toll Booth on a phone" width="300">
 
-**Run it yourself.** A live copy runs at <https://app-974b8d95-1d2c-4da7-aac2-c29d4de8b485.cleverapps.io/> (redeployed on 2026-11-10; it may be stopped between demos). The steps in [Deploy on Clever Cloud](#deploy-on-clever-cloud) recreate it from scratch in about 15 minutes, most of it waiting for Otoroshi to start.
+**Run it yourself.** The hosted demo was taken down after the presales review (November 2026). The steps in [Deploy on Clever Cloud](#deploy-on-clever-cloud) recreate it from scratch in about 15 minutes, most of it waiting for Otoroshi to start.
 
 **Get certified.** This demo runs on Clever Cloud. To deploy your own apps the same way, get certified at the [Clever Cloud Academy](https://academy.clever.cloud/).
 
