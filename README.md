@@ -2,6 +2,8 @@
 
 > A motorway toll plaza for APIs. Three lanes of cars drive to a tiny API, "the road", and every one of them stops at **Otoroshi** first. The gold badge sails through, the standard badge gets told to slow down after 20 trips a minute, and cars without a valid badge are turned away. Each answer prints a receipt with the headers Otoroshi added. One small Node.js app, no framework, no dependency, the Otoroshi add-on configured through its admin API, deployed on Clever Cloud.
 
+![The Toll Booth live on Clever Cloud: thirty cars with the Standard badge drive up, Otoroshi answers 200 PAID to the first twenty, then 429 SLOW DOWN, and each receipt prints the gateway headers](docs/tour.gif)
+
 ![The Toll Booth: three lanes, Otoroshi's answers above the barriers, a receipt with the gateway headers](docs/screenshot.png)
 
 <img src="docs/screenshot-mobile.png" alt="The Toll Booth on a phone" width="300">
@@ -66,23 +68,28 @@ clever create --type node demo-otoroshi-gateway --org <org_id> --region par
 clever scale --min-flavor nano --max-flavor XS --min-instances 1 --max-instances 2
 clever scale --build-flavor M
 
-# 2. Otoroshi (plan base; the provider offers no encryption option), linked to the app
-clever addon create otoroshi demo-otoroshi-gateway-booth --plan base --org <org_id> --region par
-clever service link-addon demo-otoroshi-gateway-booth
+# 2. Otoroshi (plan base; the provider offers no encryption option), linked to the app.
+# `clever addon create` prints the Otoroshi admin credentials, once: its output is a secret.
+# Never record or share it (terminal recording, screen share, pasted log). Here it is not shown: only the add-on ID is kept.
+OTO_ID=$(clever addon create otoroshi demo-otoroshi-gateway-booth --plan base --org <org_id> --region par 2>&1 | grep -oE 'addon_[0-9a-f-]+' | head -1)
+echo "${OTO_ID:?add-on not created: list the add-ons with clever addon list --org <org_id>}"   # the ID only, not a secret
+clever service link-addon demo-otoroshi-gateway-booth --alias demo-otoroshi-gateway
 
 # 3. The road's secret: generated here, never printed
 clever env set ROAD_TOKEN "$(openssl rand -hex 24)" >/dev/null
 clever env set CC_HEALTH_CHECK_PATH /health
 ```
 
-Linking the add-on should inject `CC_OTOROSHI_API_URL`, `CC_OTOROSHI_API_CLIENT_ID` and `CC_OTOROSHI_API_CLIENT_SECRET`. Check the names (not the values) with `clever env | grep -oE '^CC_OTOROSHI[A-Z_]*='`. With Otoroshi 18.0.1 (November 2026) the add-on exposed none of them, so set them from the add-on details, without printing them:
+Linking the add-on should inject `CC_OTOROSHI_API_URL`, `CC_OTOROSHI_API_CLIENT_ID` and `CC_OTOROSHI_API_CLIENT_SECRET`. Check the names (not the values) with `clever env | grep -oE '^CC_OTOROSHI[A-Z_]*='`. With Otoroshi 18.0.1 (November 2026) linking injected none of them, so set them on the app yourself, without printing a value.
+
+The add-on does not expose them either: `clever addon env "$OTO_ID" -F shell` prints nothing for an Otoroshi add-on (18.0.1, replayed on Clever Cloud on 2026-11-10). Read the three values from the add-on details and set them without printing them:
 
 ```bash
 clever features enable operators
 OTO=$(clever otoroshi get demo-otoroshi-gateway-booth --format json)
-clever env set CC_OTOROSHI_API_URL "$(jq -r .api.url <<<"$OTO")" >/dev/null
-clever env set CC_OTOROSHI_API_CLIENT_ID "$(jq -r .api.user <<<"$OTO")" >/dev/null
-clever env set CC_OTOROSHI_API_CLIENT_SECRET "$(jq -r .api.secret <<<"$OTO")" >/dev/null
+clever env set CC_OTOROSHI_API_URL "$(jq -r .api.url <<<"$OTO")" --alias demo-otoroshi-gateway >/dev/null
+clever env set CC_OTOROSHI_API_CLIENT_ID "$(jq -r .api.user <<<"$OTO")" --alias demo-otoroshi-gateway >/dev/null
+clever env set CC_OTOROSHI_API_CLIENT_SECRET "$(jq -r .api.secret <<<"$OTO")" --alias demo-otoroshi-gateway >/dev/null
 unset OTO
 ```
 
